@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Harness Engineering</title>
+<meta name="description" content="Инфографика по инженерии обвязки ИИ-агентов: определение, хронология, разборы Anthropic, OpenAI, LangChain, цифры 2026, принципы, чек-лист и словарь.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero" id="top">
+  <div class="eyebrow"><span><b>Инженерия обвязки ИИ-агентов</b></span><span>Сводка на 13 ноября 2026</span><span>Anthropic · OpenAI · LangChain · Thoughtworks</span></div>
+  <h1><span class="h">Harness</span><span class="o">Engineering</span></h1>
+  <div class="formula">
+    <span>Agent</span><span class="op">=</span><span>Model</span><span class="op">+</span><span>Harness</span>
+    <span class="ru">Агент = модель + обвязка. Всё, что не модель, и есть обвязка.</span>
+  </div>
+  <p class="lead">Модель умеет думать, но сама по себе ничего не делает. Работающим агентом её делает окружение: инструкции, инструменты, песочница, память между сессиями, тесты, хуки и права. Harness engineering — дисциплина проектирования этого окружения. Термин появился в феврале 2026 года и за девять месяцев стал главным словом в разговорах о кодинг-агентах.</p>
+  <div class="hero-facts">
+    <div><strong>5.02.2026</strong><span>Митчелл Хашимото называет практику «harness engineering»</span></div>
+    <div><strong>~1 000 000</strong><span>строк кода в продукте OpenAI, где люди не написали ни одной строки вручную</span></div>
+    <div><strong>+13,7 п.п.</strong><span>прирост агента LangChain на Terminal Bench 2.0 только за счёт обвязки, модель та же</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Содержание">
+  <a href="#j01"><span class="jn">J01</span>Что это такое</a>
+  <a href="#j02"><span class="jn">J02</span>Промпт → контекст → обвязка</a>
+  <a href="#j03"><span class="jn">J03</span>Хронология</a>
+  <a href="#j04"><span class="jn">J04</span>Анатомия обвязки</a>
+  <a href="#j05"><span class="jn">J05</span>Направляющие и датчики</a>
+  <a href="#j06"><span class="jn">J06</span>Anthropic: агенты-сменщики</a>
+  <a href="#j07"><span class="jn">J07</span>Anthropic: планер, генератор, оценщик</a>
+  <a href="#j08"><span class="jn">J08</span>Anthropic: мозг, руки, сессия</a>
+  <a href="#j09"><span class="jn">J09</span>OpenAI: миллион строк</a>
+  <a href="#j10"><span class="jn">J10</span>OpenAI: что видит агент</a>
+  <a href="#j11"><span class="jn">J11</span>OpenAI: репозиторий и слои</a>
+  <a href="#j12"><span class="jn">J12</span>Хашимото и LangChain</a>
+  <a href="#j13"><span class="jn">J13</span>Состояние 2026 в цифрах</a>
+  <a href="#j14"><span class="jn">J14</span>Принципы</a>
+  <a href="#j15"><span class="jn">J15</span>Типовые сбои</a>
+  <a href="#j16"><span class="jn">J16</span>С чего начать</a>
+  <a href="#j17"><span class="jn">J17</span>Словарь</a>
+  <a href="#j18"><span class="jn">J18</span>Источники</a>
+</nav>
+
+<main class="sheet">
+
+<section class="sec" id="j01">
+  <aside class="tag"><div class="j"><span class="jbox">J01</span><span class="jlabel">Определение</span></div></aside>
+  <div class="body">
+    <p class="kicker">Что это такое</p>
+    <h2 class="h2">Всё, что вокруг модели, проектируется так же тщательно, как код</h2>
+    <div class="two">
+      <div class="prose">
+        <p><b>Harness</b> (обвязка) — это программная среда вокруг языковой модели: цикл, который вызывает модель, инструменты и их описания, файловая система и песочница, управление контекстом и памятью, проверки, хуки, права и логи. Раньше это называли scaffolding, «строительные леса».</p>
+        <p><b>Harness engineering</b> — практика относиться к этой среде как к настоящему инженерному артефакту. Её проектируют, тестируют и ужесточают каждый раз, когда агент ошибается. Формула Хашимото: увидел ошибку агента — потрать время, чтобы встроить в среду решение, после которого эта ошибка больше не повторится.</p>
+        <p>Важное отличие от обычной инженерии: обёрнутый компонент недетерминирован. Модель может выдумать действие или объявить работу законченной, когда она не закончена. Обвязка спроектирована так, чтобы ловить это и спокойно восстанавливаться.</p>
+      </div>
+      <figure style="margin:0">
+        <svg class="rings" viewBox="0 0 520 520" role="img" aria-label="Три концентрических круга: в центре модель, вокруг обвязка разработчика агента, снаружи обвязка пользователя">
+          <circle cx="260" cy="260" r="250" fill="var(--paper-2)" stroke="var(--ink)" stroke-width="2"/>
+          <circle cx="260" cy="275" r="170" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>
+          <circle cx="260" cy="300" r="88" fill="var(--ink)"/>
+          <text class="r-lbl" x="260" y="44" text-anchor="middle">ВНЕШНЕЕ КОЛЬЦО</text>
+          <text class="r-title" x="260" y="70" text-anchor="middle">Обвязка пользователя</text>
+          <text class="r-sub" x="260" y="92" text-anchor="middle">AGENTS.md · скиллы · хуки · тесты · MCP</text>
+          <text class="r-lbl" x="260" y="140" text-anchor="middle">СРЕДНЕЕ КОЛЬЦО</text>
+          <text class="r-title" x="260" y="166" text-anchor="middle">Обвязка агента</text>
+          <text class="r-sub" x="260" y="188" text-anchor="middle">Claude Code · Codex · OpenCode</text>
+          <text x="260" y="296" text-anchor="middle" style="font-family:var(--display);font-weight:900;font-size:24px;fill:var(--paper)">MODEL</text>
+          <text x="260" y="322" text-anchor="middle" style="font-size:14px;fill:var(--paper);opacity:.75">веса модели</text>
+        </svg>
+        <figcaption class="src" style="margin-top:8px">Слово «harness» значит разное в разных контекстах. Схема по Birgitta Böckeler, martinfowler.com, апрель 2026.</figcaption>
+      </figure>
+    </div>
+
+    <div class="etym">
+      <div><span class="en">horse harness</span><b>Упряжь</b><p class="small">Исходное значение. Сила лошади полезна, только когда её направляет сбруя. Модель — лошадь, обвязка — упряжь и вожжи.</p></div>
+      <div><span class="en">wiring harness</span><b>Жгут проводов</b><p class="small">В машиностроении — собранный пучок проводов с разъёмами, который соединяет блоки. Отсюда схема этой страницы.</p></div>
+      <div><span class="en">test harness</span><b>Тестовая обвязка</b><p class="small">В программировании — окружение, которое запускает код и проверяет результат. Проверки остаются ядром и агентной обвязки.</p></div>
+    </div>
+
+    <div>
+      <p class="slab">Если ты не модель, <em>ты обвязка.</em></p>
+      <p class="slab-cap">Вивек Триведи, LangChain, «The Anatomy of an Agent Harness», март 2026</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j02">
+  <aside class="tag"><div class="j"><span class="jbox">J02</span><span class="jlabel">Три слоя</span></div></aside>
+  <div class="body">
+    <p class="kicker">Эволюция дисциплины</p>
+    <h2 class="h2">Промпт внутри контекста, контекст внутри обвязки</h2>
+    <p class="prose muted">Эти подходы не конкурируют. Каждый следующий слой включает предыдущий. Первые два отвечают за качество одного шага. Третий решает, сможет ли агент работать часами без присмотра.</p>
+    <div class="layers">
+      <div class="lay l3">
+        <span class="lq">2026 · Harness engineering · как устроена среда</span>
+        <span class="lname">Обвязка</span>
+        <p class="ldesc">Инструменты, песочница, память между сессиями, тесты и линтеры, хуки, права, оркестрация субагентов, трейсы. Ответ на вопрос: доведёт ли агент работу до конца и не сломает ли что-нибудь по дороге.</p>
+        <div class="lay l2">
+          <span class="lq">2025 · Context engineering · что модель видит</span>
+          <span class="lname">Контекст</span>
+          <p class="ldesc">Что попадает в окно на каждом шаге: файлы, результаты поиска, история, сжатие (compaction), заметки. Контекст — ограниченный ресурс, лишнее вытесняет главное.</p>
+          <div class="lay l1">
+            <span class="lq">2022–2024 · Prompt engineering · что мы говорим</span>
+            <span class="lname">Промпт</span>
+            <p class="ldesc">Формулировка, структура, примеры в одном запросе.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j03">
+  <aside class="tag"><div class="j"><span class="jbox">J03</span><span class="jlabel">Хронология</span></div></aside>
+  <div class="body">
+    <p class="kicker">Как появился термин</p>
+    <h2 class="h2">Два года до имени, девять месяцев после</h2>
+    <div class="tl">
+      <div class="tl-item"><span class="tl-date">дек 2024</span><div class="tl-what"><span class="tl-org">Anthropic</span><b>Building Effective Agents</b><span>Принцип, который потом цитируют все: ищи самое простое решение и усложняй, только когда нужно.</span></div></div>
+      <div class="tl-item"><span class="tl-date">авг 2025</span><div class="tl-what"><span class="tl-org">OpenAI</span><b>Первый коммит в пустой репозиторий</b><span>С него начинается эксперимент, где за пять месяцев ни одной строки не написано руками.</span></div></div>
+      <div class="tl-item"><span class="tl-date">сен 2025</span><div class="tl-what"><span class="tl-org">Anthropic</span><b>Effective context engineering for AI agents</b><span>Контекст как конечный ресурс. Anthropic закрепляет понятие context engineering, которое распространилось летом 2025.</span></div></div>
+      <div class="tl-item"><span class="tl-date">окт 2025</span><div class="tl-what"><span class="tl-org">Anthropic</span><b>Agent Skills</b><span>Навыки, которые подгружаются по требованию: знания в файлах вместо огромного системного промпта.</span></div></div>
+      <div class="tl-item key"><span class="tl-date">26 ноя 2025</span><div class="tl-what"><span class="tl-org">Anthropic · Justin Young</span><b>Effective harnesses for long-running agents</b><span>Агент-инициализатор и агент-кодер, файл прогресса, список фич в JSON, init.sh. Та самая статья Anthropic про обвязку.</span></div></div>
+      <div class="tl-item key"><span class="tl-date">5 фев 2026</span><div class="tl-what"><span class="tl-org">Митчелл Хашимото</span><b>My AI Adoption Journey, шаг 5: Engineer the Harness</b><span>Создатель Terraform и Ghostty даёт практике имя. Авторство термина оспаривается: его также приписывают Вивеку Триведи из LangChain и посту OpenAI.</span></div></div>
+      <div class="tl-item key"><span class="tl-date">11 фев 2026</span><div class="tl-what"><span class="tl-org">OpenAI · Ryan Lopopolo</span><b>Harness engineering: leveraging Codex in an agent-first world</b><span>Пять месяцев, около миллиона строк, ноль строк вручную. После этого поста термин разлетелся.</span></div></div>
+      <div class="tl-item"><span class="tl-date">17 фев 2026</span><div class="tl-what"><span class="tl-org">LangChain</span><b>Improving Deep Agents with harness engineering</b><span>С 52,8 до 66,5 на Terminal Bench 2.0, из топ-30 в топ-5, модель не менялась.</span></div></div>
+      <div class="tl-item"><span class="tl-date">10 мар 2026</span><div class="tl-what"><span class="tl-org">LangChain · Vivek Trivedy</span><b>The Anatomy of an Agent Harness</b><span>Формула «агент = модель + обвязка» и список компонентов, выведенный от желаемого поведения агента.</span></div></div>
+      <div class="tl-item key"><span class="tl-date">24 мар 2026</span><div class="tl-what"><span class="tl-org">Anthropic Labs · Prithvi Rajasekaran</span><b>Harness design for long-running application development</b><span>Три агента по мотивам GAN: планировщик, генератор, оценщик. Многочасовые автономные сборки.</span></div></div>
+      <div class="tl-item"><span class="tl-date">2 апр 2026</span><div class="tl-what"><span class="tl-org">Thoughtworks · Birgitta Böckeler</span><b>Harness engineering for coding agent users</b><span>Статья на martinfowler.com: направляющие и датчики, вычислительные и инференциальные проверки.</span></div></div>
+      <div class="tl-item key"><span class="tl-date">8 апр 2026</span><div class="tl-what"><span class="tl-org">Anthropic</span><b>Claude Managed Agents</b><span>Обвязка как сервис. Мозг, руки и сессия разнесены по отдельным интерфейсам.</span></div></div>
+      <div class="tl-item"><span class="tl-date">19 апр 2026</span><div class="tl-what"><span class="tl-org">Addy Osmani</span><b>Agent Harness Engineering</b><span>Обзорная статья. Пересказывает идею Вивека Триведи о Harness-as-a-Service: строить поверх рантайма агента, а не поверх API модели.</span></div></div>
+      <div class="tl-item"><span class="tl-date">23 июн 2026</span><div class="tl-what"><span class="tl-org">Pydantic AI</span><b>Версия 2.0 с «harness-first» дизайном</b><span>Фреймворки начинают строиться вокруг понятия обвязки.</span></div></div>
+      <div class="tl-item"><span class="tl-date">22 июл 2026</span><div class="tl-what"><span class="tl-org">Microsoft</span><b>HarnessAgent в Agent Framework вышел в релиз</b><span>Обвязка становится стандартным объектом в SDK. Анонс был 22 июня.</span></div></div>
+      <div class="tl-item"><span class="tl-date">7 авг 2026</span><div class="tl-what"><span class="tl-org">LangChain</span><b>Managed Deep Agents в публичной бете</b><span>Готовая управляемая обвязка от LangChain. Закрытая бета была с 13 мая.</span></div></div>
+      <div class="tl-item"><span class="tl-date">13 авг 2026</span><div class="tl-what"><span class="tl-org">DeepSeek</span><b>DeepSeek Harness, где каждая часть — плагин</b><span>Около 95 тыс. звёзд GitHub за два дня, больше 240 тыс. за два месяца.</span></div></div>
+      <div class="tl-item"><span class="tl-date">9 сен 2026</span><div class="tl-what"><span class="tl-org">Google</span><b>The Anatomy of Harness Engineering</b><span>Как оценивать, итерировать и ограждать кодинг-агентов. Сначала догфудинг и проверка гипотез, потом поведенческие evals вместо одних бенчмарков.</span></div></div>
+      <div class="tl-item"><span class="tl-date">24 сен 2026</span><div class="tl-what"><span class="tl-org">Marmelab</span><b>The State of AI Harness Engineering 2026</b><span>Обзор исследований и сотен репозиториев: что реально работает, а что нет. Цифры в J13.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j04">
+  <aside class="tag"><div class="j"><span class="jbox">J04</span><span class="jlabel">Анатомия</span></div></aside>
+  <div class="body">
+    <p class="kicker">Из чего состоит обвязка</p>
+    <h2 class="h2">Девять жил одного жгута</h2>
+    <p class="prose muted">Слева то, что направляет модель до действия. Справа то, чем она действует и что проверяет результат. Разъём в центре — модель. Ни одна жила не обязательна сама по себе: каждая закрывает конкретный провал, замеченный в работе.</p>
+    <div class="scroll-x">
+      <svg class="diagram" viewBox="0 0 1000 560" role="img" aria-label="Схема жгута: модель в центре, девять компонентов обвязки подключены проводами">
+        <path class="wire c-blue"   d="M280 90  C 350 90, 350 235, 410 235"/>
+        <path class="wire c-yellow" d="M280 210 C 350 210, 350 265, 410 265"/>
+        <path class="wire c-green"  d="M280 330 C 350 330, 350 295, 410 295"/>
+        <path class="wire c-red"    d="M280 450 C 350 450, 350 325, 410 325"/>
+        <path class="wire c-hv"     d="M590 220 C 650 220, 650 60,  720 60"/>
+        <path class="wire c-blue"   d="M590 250 C 650 250, 650 170, 720 170"/>
+        <path class="wire c-green"  d="M590 280 C 650 280, 650 280, 720 280"/>
+        <path class="wire c-red"    d="M590 310 C 650 310, 650 390, 720 390"/>
+        <path class="wire c-yellow" d="M590 340 C 650 340, 650 500, 720 500"/>
+        <path class="flow" d="M280 90  C 350 90, 350 235, 410 235"/>
+        <path class="flow" d="M280 210 C 350 210, 350 265, 410 265"/>
+        <path class="flow" d="M280 330 C 350 330, 350 295, 410 295"/>
+        <path class="flow" d="M280 450 C 350 450, 350 325, 410 325"/>
+        <path class="flow" d="M590 220 C 650 220, 650 60,  720 60"/>
+        <path class="flow" d="M590 250 C 650 250, 650 170, 720 170"/>
+        <path class="flow" d="M590 280 C 650 280, 650 280, 720 280"/>
+        <path class="flow" d="M590 310 C 650 310, 650 390, 720 390"/>
+        <path class="flow" d="M590 340 C 650 340, 650 500, 720 500"/>
+        <rect x="410" y="190" width="180" height="180" rx="4" fill="var(--ink)"/>
+        <g fill="var(--hv)">
+          <circle cx="410" cy="235" r="6"/><circle cx="410" cy="265" r="6"/><circle cx="410" cy="295" r="6"/><circle cx="410" cy="325" r="6"/>
+          <circle cx="590" cy="220" r="6"/><circle cx="590" cy="250" r="6"/><circle cx="590" cy="280" r="6"/><circle cx="590" cy="310" r="6"/><circle cx="590" cy="340" r="6"/>
+        </g>
+        <text x="500" y="275" text-anchor="middle" style="font-family:var(--display);font-weight:900;font-size:28px;fill:var(--paper)">MODEL</text>
+        <text x="500" y="302" text-anchor="middle" style="font-family:var(--mono);font-size:12px;fill:var(--paper);opacity:.7">разъём X0</text>
+        <g>
+          <rect class="box" x="30" y="51" width="250" height="78"/>
+          <text class="t-code f-blue" x="46" y="74">W1 · НАПРАВЛЯЕТ</text>
+          <text class="t-title" x="46" y="97">Инструкции</text>
+          <text class="t-sub" x="46" y="117">AGENTS.md · системный промпт · спеки</text>
+        </g>
+        <g>
+          <rect class="box" x="30" y="171" width="250" height="78"/>
+          <text class="t-code f-yellow" x="46" y="194">W2 · ПОМНИТ</text>
+          <text class="t-title" x="46" y="217">Состояние и память</text>
+          <text class="t-sub" x="46" y="237">progress-файл · git · compaction</text>
+        </g>
+        <g>
+          <rect class="box" x="30" y="291" width="250" height="78"/>
+          <text class="t-code f-green" x="46" y="314">W3 · ЗНАЕТ</text>
+          <text class="t-title" x="46" y="337">Знания и навыки</text>
+          <text class="t-sub" x="46" y="357">skills · docs/ · поиск · Context7</text>
+        </g>
+        <g>
+          <rect class="box" x="30" y="411" width="250" height="78"/>
+          <text class="t-code f-red" x="46" y="434">W4 · ДЕЛИТ</text>
+          <text class="t-title" x="46" y="457">Оркестрация</text>
+          <text class="t-sub" x="46" y="477">субагенты · handoff · выбор модели</text>
+        </g>
+        <g>
+          <rect class="box" x="720" y="21" width="250" height="78"/>
+          <text class="t-code f-hv" x="736" y="44">W5 · ДЕЙСТВУЕТ</text>
+          <text class="t-title" x="736" y="67">Инструменты</text>
+          <text class="t-sub" x="736" y="87">bash · файлы · браузер · MCP</text>
+        </g>
+        <g>
+          <rect class="box" x="720" y="131" width="250" height="78"/>
+          <text class="t-code f-blue" x="736" y="154">W6 · ИЗОЛИРУЕТ</text>
+          <text class="t-title" x="736" y="177">Песочница</text>
+          <text class="t-sub" x="736" y="197">контейнер · git worktree · VM</text>
+        </g>
+        <g>
+          <rect class="box" x="720" y="241" width="250" height="78"/>
+          <text class="t-code f-green" x="736" y="264">W7 · ПРОВЕРЯЕТ</text>
+          <text class="t-title" x="736" y="287">Датчики</text>
+          <text class="t-sub" x="736" y="307">тесты · линтеры · агент-оценщик</text>
+        </g>
+        <g>
+          <rect class="box" x="720" y="351" width="250" height="78"/>
+          <text class="t-code f-red" x="736" y="374">W8 · ОГРАНИЧИВАЕТ</text>
+          <text class="t-title" x="736" y="397">Хуки и права</text>
+          <text class="t-sub" x="736" y="417">PreToolUse · deny · подтверждения</text>
+        </g>
+        <g>
+          <rect class="box" x="720" y="461" width="250" height="78"/>
+          <text class="t-code f-yellow" x="736" y="484">W9 · НАБЛЮДАЕТ</text>
+          <text class="t-title" x="736" y="507">Наблюдаемость</text>
+          <text class="t-sub" x="736" y="527">трейсы · логи · evals · стоимость</text>
+        </g>
+      </svg>
+    </div>
+    <div class="three">
+      <div class="prose small"><p><b>Цикл агента.</b> Ядро любой обвязки — простой цикл: вызвать модель, выполнить запрошенные инструменты, вернуть результат, повторять до ответа. В Managed Agents Anthropic вся обвязка — это именно этот цикл без состояния.</p></div>
+      <div class="prose small"><p><b>Хуки и middleware.</b> Детерминированный код, который срабатывает на событиях: сжатие контекста, продолжение работы, запуск линтера после правки, запрет опасной команды до её выполнения.</p></div>
+      <div class="prose small"><p><b>Модель и обвязка срослись.</b> По оценке LangChain, Claude Code и Codex дообучают вместе с их обвязкой. Полезный приём сначала появляется в обвязке, потом модель учат им пользоваться.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j05">
+  <aside class="tag"><div class="j"><span class="jbox">J05</span><span class="jlabel">Управление</span></div></aside>
+  <div class="body">
+    <p class="kicker">Модель Thoughtworks / martinfowler.com</p>
+    <h2 class="h2">Направляющие до действия, датчики после</h2>
+    <div class="prose">
+      <p>Böckeler описывает обвязку языком теории управления. <b>Направляющие</b> (guides, feedforward) предугадывают поведение агента и задают курс до того, как он начнёт: повышают шанс попасть с первой попытки. <b>Датчики</b> (sensors, feedback) смотрят на результат и дают агенту исправиться. Особенно сильны датчики, чьи сообщения написаны для модели: например, линтер, который сразу пишет, как исправить нарушение.</p>
+      <p>Вторая ось — <b>вычислительные</b> проверки (детерминированные, быстрые, дешёвые) против <b>инференциальных</b> (оценивает другая модель: медленнее, дороже, недетерминированно, зато видит смысл).</p>
+    </div>
+    <div class="matrix" role="table" aria-label="Матрица направляющих и датчиков">
+      <div class="corner" role="cell"></div>
+      <div class="mh" role="columnheader">Направляющие<small>feedforward · до действия</small></div>
+      <div class="mh" role="columnheader">Датчики<small>feedback · после действия</small></div>
+      <div class="mr" role="rowheader">Вычислительные<small>детерминированный код</small></div>
+      <div class="cell" data-h="Направляющие" role="cell"><ul><li>LSP и типы</li><li>шаблоны и генераторы кода</li><li>скрипт <code>init.sh</code></li><li>структура репозитория</li></ul></div>
+      <div class="cell" data-h="Датчики" role="cell"><ul><li>тесты, покрытие, мутационные тесты</li><li>линтеры, semgrep, dep-cruiser</li><li>структурные тесты архитектуры</li><li>pre-push хуки</li></ul></div>
+      <div class="mr" role="rowheader">Инференциальные<small>оценивает модель</small></div>
+      <div class="cell" data-h="Направляющие" role="cell"><ul><li><code>AGENTS.md</code>, <code>architecture.md</code></li><li>скиллы вроде <code>/how-to-test</code></li><li>спецификации и контракты</li><li>MCP к базе знаний команды</li></ul></div>
+      <div class="cell" data-h="Датчики" role="cell"><ul><li>агент-ревьюер <code>/code-review</code></li><li>агент-оценщик с Playwright</li><li>LLM-as-judge по критериям</li><li>ревью человеком</li></ul></div>
+    </div>
+    <div class="three">
+      <div class="prose small"><p class="h3">Три объекта регулирования</p><p>Сопровождаемость кода, соответствие архитектуре и поведение системы. Для поведения направляющая — спецификация, датчик — тесты плюс ручная проверка человеком.</p></div>
+      <div class="prose small"><p class="h3">Держи качество слева</p><p>Дешёвые датчики запускаются сразу при генерации, дорогие (архитектурное ревью, мутационные тесты) — в пайплайне после интеграции. Stripe подчёркивает, как важен для их Minions принцип «shift feedback left».</p></div>
+      <div class="prose small"><p class="h3">Harnessability</p><p>Не любой код одинаково легко обвязать. Строгие типы, явные границы модулей и фреймворки, скрывающие детали, делают кодовую базу удобнее для агента. Закон Эшби: регулятор должен быть не беднее регулируемой системы, поэтому стандартные топологии и шаблоны обвязки сужают разнообразие.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j06">
+  <aside class="tag"><div class="j"><span class="jbox">J06</span><span class="jlabel">Anthropic · ноябрь 2025</span></div></aside>
+  <div class="body">
+    <p class="kicker">Effective harnesses for long-running agents</p>
+    <h2 class="h2">Инженеры, работающие сменами без памяти</h2>
+    <div class="two">
+      <div class="prose">
+        <p>Главная трудность долгих задач: агент работает отдельными сессиями, и каждая новая начинается с чистого листа. Anthropic сравнивает это с проектом, где инженеры работают посменно, и каждый новый ничего не помнит о прошлой смене.</p>
+        <p>Даже Opus 4.5 на Claude Agent SDK со сжатием контекста не собирал приложение уровня продакшена по фразе «сделай клон claude.ai». Провалы были двух видов: агент пытался сделать всё за один заход и обрывался посреди фичи, а позже другой экземпляр видел прогресс и объявлял проект готовым.</p>
+        <p><b>Решение — два промпта.</b> Агент-инициализатор в первой сессии готовит среду. Агент-кодер в каждой следующей делает одну фичу и оставляет чистое состояние, пригодное для слияния в main. Системный промпт, инструменты и обвязка у них одинаковые, различается только первое сообщение.</p>
+      </div>
+      <div style="display:grid;gap:14px">
+        <p class="src">feature_list.json · все 200+ фич стартуют с "passes": false</p>
+<pre><span class="b">{</span>
+  <span class="k">"category"</span>: <span class="s">"functional"</span>,
+  <span class="k">"description"</span>: <span class="s">"New chat button creates a fresh conversation"</span>,
+  <span class="k">"steps"</span>: [
+    <span class="s">"Navigate to main interface"</span>,
+    <span class="s">"Click the 'New Chat' button"</span>,
+    <span class="s">"Verify a new conversation is created"</span>
+  ],
+  <span class="k">"passes"</span>: <span class="b">false</span>
+<span class="b">}</span></pre>
+        <p class="small muted">Кодеру разрешено менять только поле <code>passes</code>. JSON выбрали потому, что модель реже портит и переписывает JSON, чем Markdown.</p>
+      </div>
+    </div>
+
+    <div class="three">
+      <div class="role" style="border:2px solid var(--ink)"><span class="rt">артефакт</span><span class="rn">init.sh</span><p>Поднимает dev-сервер, после чего агент проходит базовый сквозной тест. Агенту не нужно каждый раз выяснять, как запускать проект.</p></div>
+      <div class="role" style="border:2px solid var(--ink)"><span class="rt">артефакт</span><span class="rn">claude-progress.txt</span><p>Журнал того, что сделали прошлые сессии. Вместе с историей git позволяет быстро понять состояние работы.</p></div>
+      <div class="role" style="border:2px solid var(--ink)"><span class="rt">артефакт</span><span class="rn">git</span><p>Первый коммит от инициализатора, затем коммит с внятным сообщением после каждой фичи. Плохую правку можно откатить.</p></div>
+    </div>
+
+    <div class="two">
+      <div style="display:grid;gap:14px">
+        <h3 class="h3">Ритуал начала каждой сессии</h3>
+        <ol class="ritual">
+          <li><span>Выполнить <code>pwd</code>: понять, в какой папке работаешь и что можно править.</span></li>
+          <li><span>Прочитать git log и файл прогресса.</span></li>
+          <li><span>Открыть список фич и выбрать самую приоритетную из невыполненных.</span></li>
+          <li><span>Запустить <code>init.sh</code> и пройти базовый сценарий в браузере.</span></li>
+          <li><span>Если что-то сломано, сначала чинить, а потом браться за новое.</span></li>
+          <li><span>В конце: коммит и запись в файл прогресса.</span></li>
+        </ol>
+      </div>
+      <div class="prose">
+        <h3 class="h3">Тестировать как человек</h3>
+        <p>Агент охотно отмечал фичу готовой после юнит-тестов или <code>curl</code>, не проверив её сквозь интерфейс. Когда ему дали автоматизацию браузера (Puppeteer MCP) и велели проверять как пользователь, качество резко выросло.</p>
+        <p class="muted small">Остались слепые зоны: например, нативные alert-окна браузера через Puppeteer не видны, и фичи на них выходили более багованными.</p>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Провал</th><th>Что делает инициализатор</th><th>Что делает кодер</th></tr></thead>
+        <tbody>
+          <tr><td>Рано объявляет весь проект готовым</td><td>Пишет JSON-список сквозных фич из спецификации</td><td>Читает список в начале сессии, берёт одну фичу</td></tr>
+          <tr><td>Оставляет баги и незадокументированный прогресс</td><td>Создаёт git-репозиторий и файл прогресса</td><td>Начинает с чтения прогресса, git log и smoke-теста; заканчивает коммитом и записью</td></tr>
+          <tr><td>Отмечает фичу готовой без проверки</td><td>Список фич со статусом «не проходит»</td><td>Проверяет сам и ставит «проходит» только после тщательного теста</td></tr>
+          <tr><td>Тратит время на то, как запустить приложение</td><td>Пишет <code>init.sh</code></td><td>Начинает с чтения и запуска <code>init.sh</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j07">
+  <aside class="tag"><div class="j"><span class="jbox">J07</span><span class="jlabel">Anthropic · март 2026</span></div></aside>
+  <div class="body">
+    <p class="kicker">Harness design for long-running application development</p>
+    <h2 class="h2">Один строит, другой придирается</h2>
+    <div class="prose">
+      <p>Следующий шаг Anthropic Labs вдохновлён генеративно-состязательными сетями (GAN). Две проблемы оставались после первой обвязки. Первая — потеря связности при заполнении окна и «тревога контекста»: модель сворачивает работу, думая, что лимит близко. Вторая — самооценка: агент уверенно хвалит свою работу, даже когда она посредственна. Настроить отдельного скептичного оценщика оказалось гораздо проще, чем научить генератора критиковать себя.</p>
+    </div>
+    <div class="roles">
+      <div class="role"><span class="rt">агент 1</span><span class="rn">Планировщик</span><p>Разворачивает промпт в 1–4 предложения в полную продуктовую спецификацию. Амбициозно по объёму, но без деталей реализации: ошибка в спеке каскадом уходит вниз.</p></div>
+      <div class="role"><span class="rt">агент 2</span><span class="rn">Генератор</span><p>Строит приложение по одной фиче за спринт (React, Vite, FastAPI, SQLite/PostgreSQL), сам проверяет себя и сдаёт работу в QA.</p></div>
+      <div class="role"><span class="rt">агент 3</span><span class="rn">Оценщик</span><p>Через Playwright MCP прокликивает живое приложение как пользователь, проверяет UI, API и БД. У каждого критерия жёсткий порог: ниже порога — спринт провален.</p></div>
+    </div>
+    <div class="two">
+      <div class="prose">
+        <h3 class="h3">Контракт спринта</h3>
+        <p>Перед каждым спринтом генератор и оценщик договариваются, что значит «готово»: что будет построено и как это проверить. В спринте 3 одной игры было 27 критериев только для редактора уровней. Общение шло через файлы: один агент пишет, другой читает и отвечает.</p>
+        <h3 class="h3">Критерии для дизайна</h3>
+        <p>Качество дизайна, оригинальность, ремесло, функциональность. Первые два весили больше: по ремеслу и функциональности Claude и так хорош, а по оригинальности выдаёт безопасные шаблоны. Критерии прямо штрафовали узнаваемый «AI slop».</p>
+      </div>
+      <div style="display:grid;gap:16px">
+        <h3 class="h3">Ретро-конструктор игр: один агент против обвязки</h3>
+        <div class="bars" aria-label="Сравнение длительности: 20 минут против 360 минут">
+          <p class="src">Длительность, минуты</p>
+          <div class="bar-row"><span class="bl">Один агент</span><div class="track"><div class="fill" style="width:5.56%"></div></div><span class="bv">20</span></div>
+          <div class="bar-row"><span class="bl">Полная обвязка</span><div class="track"><div class="fill hv" style="width:100%"></div></div><span class="bv">360</span></div>
+          <p class="src" style="margin-top:8px">Стоимость, доллары</p>
+          <div class="bar-row"><span class="bl">Один агент</span><div class="track"><div class="fill" style="width:4.5%"></div></div><span class="bv">$9</span></div>
+          <div class="bar-row"><span class="bl">Полная обвязка</span><div class="track"><div class="fill hv" style="width:100%"></div></div><span class="bv">$200</span></div>
+        </div>
+        <p class="small">В 20 с лишним раз дороже, но у одиночного агента главная фича не работала: сущности на экране не реагировали на ввод. В версии с обвязкой игра запускалась и в неё можно было играть, плюс встроенный ИИ-генератор спрайтов и уровней.</p>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:14px">
+      <h3 class="h3">Версия 2 на Opus 4.6: цифровая аудиостанция в браузере за 3 ч 50 мин</h3>
+      <p class="prose small muted">Сброс контекста убрали ещё на Opus 4.5, а с выходом Opus 4.6 убрали и спринты: модель держала связность больше двух часов подряд на автоматическом сжатии. Оценщик остался, но проверяет один раз в конце раунда. Ширина сегмента пропорциональна времени.</p>
+      <div>
+        <div class="stack" role="img" aria-label="Фазы: планировщик 4,7 мин, сборка 127 мин, QA 8,8 мин, сборка 62 мин, QA 6,8 мин, сборка 10,9 мин, QA 9,6 мин">
+          <div class="pl" style="flex:4.7"></div>
+          <div class="bld" style="flex:127"></div>
+          <div class="qa" style="flex:8.8"></div>
+          <div class="bld" style="flex:62"></div>
+          <div class="qa" style="flex:6.8"></div>
+          <div class="bld" style="flex:10.9"></div>
+          <div class="qa" style="flex:9.6"></div>
+        </div>
+        <div class="stack-lbl"><span style="left:0.00%">0</span><span style="left:26.11%">1 ч</span><span style="left:52.22%">2 ч</span><span style="left:78.33%">3 ч</span><span style="left:100.00%">3 ч 50 мин</span></div>
+      </div>
+      <div class="legend"><span><i style="background:var(--w-yellow)"></i>Планировщик</span><span><i style="background:var(--hv)"></i>Сборка</span><span><i style="background:var(--w-blue)"></i>QA-оценщик</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Агент и фаза</th><th class="num">Время</th><th class="num">Стоимость</th></tr></thead>
+          <tbody>
+            <tr><td>Планировщик</td><td class="num">4,7 мин</td><td class="num">$0,46</td></tr>
+            <tr><td>Сборка, раунд 1</td><td class="num">2 ч 7 мин</td><td class="num">$71,08</td></tr>
+            <tr><td>QA, раунд 1</td><td class="num">8,8 мин</td><td class="num">$3,24</td></tr>
+            <tr><td>Сборка, раунд 2</td><td class="num">1 ч 2 мин</td><td class="num">$36,89</td></tr>
+            <tr><td>QA, раунд 2</td><td class="num">6,8 мин</td><td class="num">$3,09</td></tr>
+            <tr><td>Сборка, раунд 3</td><td class="num">10,9 мин</td><td class="num">$5,88</td></tr>
+            <tr><td>QA, раунд 3</td><td class="num">9,6 мин</td><td class="num">$4,06</td></tr>
+            <tr class="total"><td>Итого, обвязка V2</td><td class="num">3 ч 50 мин</td><td class="num">$124,70</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small">QA всё равно находил реальные дыры: клипы нельзя двигать по таймлайну, запись с микрофона — заглушка, эффекты без графических редакторов.</p>
+    </div>
+
+    <div>
+      <p class="slab slab-wide">Каждый компонент обвязки — это <em>предположение о том, чего модель не умеет.</em> С новой моделью оно устаревает.</p>
+      <p class="slab-cap">Главный вывод статьи. Убирайте компоненты по одному и смотрите, что изменилось. Пространство интересных обвязок не сжимается с ростом моделей, оно смещается.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j08">
+  <aside class="tag"><div class="j"><span class="jbox">J08</span><span class="jlabel">Anthropic · апрель 2026</span></div></aside>
+  <div class="body">
+    <p class="kicker">Scaling Managed Agents with stable interfaces</p>
+    <h2 class="h2">Мозг отдельно, руки отдельно, память отдельно</h2>
+    <p class="prose">Первая версия Claude Managed Agents держала сессию, обвязку и песочницу в одном контейнере. Такой контейнер — «питомец»: упал, и сессия потеряна. Его разобрали на три независимые части, каждую можно заменить или перезапустить отдельно.</p>
+    <div class="bhs">
+      <div class="node"><span class="nn">Сессия<small>session</small></span><p>Журнал событий только на дозапись. Живёт в надёжном хранилище вне окна контекста и вне обвязки. Переживает любые падения.</p></div>
+      <div class="link">читает<br>журнал</div>
+      <div class="node mid"><span class="nn">Мозг<small>brain = Claude + harness</small></span><p>Цикл агента без состояния. Упал — новый перечитывает журнал и продолжает с того же места. Масштабирование — просто больше экземпляров.</p></div>
+      <div class="link">execute(name,<br>input) → string</div>
+      <div class="node"><span class="nn">Руки<small>hands</small></span><p>Песочницы, MCP-серверы, VPC клиента. Поднимаются по вызову инструмента, когда нужны. Токены недоступны коду, который выполняется в песочнице.</p></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><strong class="hv">−60%</strong><span>медианное время до первого токена (p50) после разделения</span></div>
+      <div class="stat"><strong class="hv">−90%+</strong><span>время до первого токена в хвосте (p95)</span></div>
+      <div class="stat"><strong>1</strong><span>интерфейс для любых рук: имя и вход внутрь, строка наружу</span></div>
+      <div class="stat"><strong>0</strong><span>токенов, доступных коду, который Claude запускает в песочнице</span></div>
+    </div>
+    <p class="note">Обвязка кодирует предположения, которые устаревают с каждой моделью. Поэтому Anthropic делает стабильными интерфейсы вокруг неё, а саму логику обвязки меняет от поколения к поколению.</p>
+  </div>
+</section>
+
+<section class="sec" id="j09">
+  <aside class="tag"><div class="j"><span class="jbox">J09</span><span class="jlabel">OpenAI · февраль 2026</span></div></aside>
+  <div class="body">
+    <p class="kicker">Harness engineering: leveraging Codex in an agent-first world</p>
+    <h2 class="h2">Пустой репозиторий, пять месяцев, ни строчки руками</h2>
+    <div class="stats">
+      <div class="stat"><strong>~1 млн</strong><span>строк кода в бета-продукте: логика, тесты, CI, документация, наблюдаемость</span></div>
+      <div class="stat"><strong class="hv">0</strong><span>строк, написанных человеком вручную. Даже первый AGENTS.md написал Codex</span></div>
+      <div class="stat"><strong>~1 500</strong><span>pull request’ов открыто и влито агентами</span></div>
+      <div class="stat"><strong>3,5</strong><span>PR в день на инженера; команда выросла с 3 до 7 человек, темп рос</span></div>
+    </div>
+    <div class="rules">
+      <div class="rule"><h4>Карта, а не энциклопедия</h4><p>Один огромный AGENTS.md провалился: вытеснял задачу из контекста, гнил и не проверялся. Теперь AGENTS.md около 100 строк — оглавление со ссылками, а знания живут в структурированной папке <code>docs/</code>.</p></div>
+      <div class="rule"><h4>Цель — читаемость для агента</h4><p>Всё, чего агент не видит в репозитории, для него не существует. Решения из чатов и голов переносятся в репозиторий как версионируемые документы.</p></div>
+      <div class="rule"><h4>Приложение видно агенту</h4><p>Приложение поднимается в каждом git worktree отдельно. Chrome DevTools Protocol подключён к рантайму, есть скиллы для DOM, скриншотов и навигации, локальные логи и метрики.</p></div>
+      <div class="rule"><h4>Архитектура закреплена кодом</h4><p>Строгие слои внутри домена с допустимыми направлениями зависимостей. Нарушения ловят свои линтеры и структурные тесты, и их сообщения подсказывают агенту, как исправить.</p></div>
+      <div class="rule"><h4>Вкус превращается в правила</h4><p>Комментарии ревью, рефакторинги и баги от пользователей становятся документацией. Если документации не хватает, правило переносится в код.</p></div>
+      <div class="rule"><h4>Пропускная способность меняет слияние</h4><p>Минимум блокирующих ворот, короткоживущие PR, флаки лечатся повторным прогоном. Исправления дешёвые, ожидание дорогое. В медленной команде так делать безответственно.</p></div>
+    </div>
+    <div class="two">
+      <div class="prose">
+        <h3 class="h3">Энтропия и сборка мусора</h3>
+        <p>Codex повторяет паттерны, которые уже есть в репозитории, включая плохие. Сначала команда каждую пятницу, то есть 20% недели, вручную вычищала «AI slop». Это не масштабировалось.</p>
+        <p>Решение: «золотые принципы» записаны в репозиторий, а фоновые задачи Codex регулярно ищут отклонения, обновляют оценки качества и открывают маленькие PR с рефакторингом. Большинство ревьюится меньше чем за минуту. Техдолг гасится мелкими платежами постоянно.</p>
+      </div>
+      <div class="prose">
+        <h3 class="h3">Новая роль инженера</h3>
+        <p>Люди остаются в контуре, но на другом уровне: расставляют приоритеты, превращают отзывы пользователей в критерии приёмки, проверяют результат. Когда агент буксует, это сигнал: чего не хватает — инструмента, ограждения или документа? Недостающее добавляется в репозиторий, и пишет его тоже Codex.</p>
+        <p class="muted small">Подробности — в разделах J10 и J11.</p>
+        <p class="muted small">Сами авторы предупреждают: такая автономия держится на конкретной структуре и инструментах этого репозитория и без похожих вложений не переносится.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j10">
+  <aside class="tag"><div class="j"><span class="jbox">J10</span><span class="jlabel">OpenAI изнутри</span></div></aside>
+  <div class="body">
+    <p class="kicker">OpenAI изнутри: подробности из той же статьи</p>
+    <h2 class="h2">Чего агент не видит, того не существует</h2>
+    <div class="prose">
+      <p>Первый коммит в пустой репозиторий сделан в конце августа 2025 года. По оценке команды, продукт собран примерно за десятую часть времени, которое ушло бы на ручное написание. Единственным по-настоящему дефицитным ресурсом команда называет человеческое время и внимание.</p>
+      <p>Сначала работа шла медленнее ожиданий. Причина была не в модели: среде не хватало инструментов, абстракций и структуры. Когда что-то не получалось, инженеры не просили агента стараться усерднее. Они спрашивали, какой возможности не хватает и как сделать её понятной агенту и обязательной для него.</p>
+    </div>
+
+    <div class="ghosts">
+      <div class="ghost"><span class="gk">Google Doc</span><p>Документ о том, как команда расставляет приоритеты фич и планирует работу</p></div>
+      <div class="ghost"><span class="gk">Сообщение в Slack</span><p>Договорённость, что требования к безопасности теперь задаёт конкретный человек</p></div>
+      <div class="ghost"><span class="gk">Неявное знание</span><p>Кто отвечает за общее архитектурное направление системы</p></div>
+      <div class="ghost-arrow" aria-hidden="true">→</div>
+      <div class="seen"><span class="gk">Markdown в репозитории</span><p>Код, разметка, схемы и планы под версионным контролем. Только это агент и видит.</p></div>
+    </div>
+    <p class="small muted">Обсуждение в Slack, о котором агент не знает, для него так же бесполезно, как для сотрудника, который придёт в компанию через три месяца. Поэтому всё важное переносится в репозиторий, вплоть до командных предпочтений по эмодзи.</p>
+
+    <div class="two">
+      <div style="display:grid;gap:14px">
+        <h3 class="h3">Агент сам прокликивает интерфейс</h3>
+        <p class="small">Приложение поднимается отдельно в каждом git worktree. Протокол Chrome DevTools подключён к среде агента, для DOM-снимков, скриншотов и навигации написаны скиллы. Цикл проверки:</p>
+        <ol class="ritual">
+          <li><span>Выбрать цель и очистить консоль.</span></li>
+          <li><span>Снять снимок «до».</span></li>
+          <li><span>Пройти путь в интерфейсе; приложение отдаёт события выполнения.</span></li>
+          <li><span>Снять снимок «после».</span></li>
+          <li><span>Внести исправление и перезапустить приложение.</span></li>
+        </ol>
+        <p class="loopnote"><b>LOOP UNTIL CLEAN</b> повторять проверку, пока всё не станет чисто</p>
+      </div>
+      <div class="prose">
+        <h3 class="h3">Наблюдаемость на каждую задачу</h3>
+        <p>Логи, метрики и трейсы доступны агенту через локальный стек, который живёт, только пока жив worktree, и удаляется после задачи. Логи агент запрашивает на LogQL, метрики на PromQL.</p>
+        <p>С таким контекстом выполнимыми становятся промпты вида «запуск сервиса должен укладываться в 800 мс» или «ни один интервал в четырёх критичных сценариях не дольше двух секунд».</p>
+        <p class="slab" style="font-size:clamp(1.3rem,2.6vw,1.9rem)">Один запуск Codex регулярно работает над задачей <em>больше шести часов</em>, часто пока люди спят.</p>
+      </div>
+    </div>
+
+    <div class="scroll-x">
+      <svg class="diagram pipe" viewBox="0 0 1000 400" role="img" aria-label="Стек наблюдаемости: приложение отправляет логи, метрики и трейсы в Vector, оттуда в Victoria Logs, Metrics и Traces с API LogQL, PromQL, TraceQL; Codex запрашивает их, вносит изменение в код, приложение перезапускается и прогоняется снова">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="mk"/></marker></defs>
+        <path class="wire c-blue"   d="M160 108 H300"/>
+        <path class="wire c-yellow" d="M160 120 H300"/>
+        <path class="wire c-green"  d="M160 132 H300"/>
+        <text class="t-sub" x="230" y="96" text-anchor="middle" style="font-size:11px">логи · метрики · трейсы</text>
+        <text class="t-sub" x="230" y="156" text-anchor="middle">HTTP + OTLP</text>
+        <path class="wire c-blue"   d="M440 120 C 490 120, 490 50, 540 50"/>
+        <path class="wire c-yellow" d="M440 120 H540"/>
+        <path class="wire c-green"  d="M440 120 C 490 120, 490 190, 540 190"/>
+        <text class="t-code" x="490" y="232" text-anchor="middle" style="fill:var(--ink-2)">fan-out</text>
+        <path class="ln" d="M700 50 H760"/><path class="ln" d="M700 120 H760"/><path class="ln" d="M700 190 H760"/>
+        <path class="ln" d="M900 50 H950 M900 120 H950 M900 190 H950 M950 50 V330 H864" marker-end="url(#ah)"/>
+        <text class="t-sub" x="940" y="262" text-anchor="end">запрос · корреляция · вывод</text>
+        <path class="wire c-hv" d="M680 330 H466" marker-end="url(#ah)"/>
+        <text class="t-sub" x="571" y="318" text-anchor="middle">изменение (PR)</text>
+        <path class="wire c-hv" d="M300 330 H90 V156" marker-end="url(#ah)"/>
+        <text class="t-sub" x="195" y="318" text-anchor="middle">перезапуск и прогон</text>
+        <text class="t-code" x="380" y="392" text-anchor="middle" style="fill:var(--hv)">КОНТУР ОБРАТНОЙ СВЯЗИ</text>
+        <rect class="box" x="20" y="90" width="140" height="60"/><text class="t-title" x="90" y="126" text-anchor="middle">APP</text>
+        <rect class="box" x="300" y="90" width="140" height="60" rx="30"/><text class="t-title" x="370" y="126" text-anchor="middle">Vector</text>
+        <rect class="box" x="540" y="22" width="160" height="56"/><text class="t-title" x="620" y="55" text-anchor="middle">Victoria Logs</text>
+        <rect class="box" x="540" y="92" width="160" height="56"/><text class="t-title" x="620" y="125" text-anchor="middle">Victoria Metrics</text>
+        <rect class="box" x="540" y="162" width="160" height="56"/><text class="t-title" x="620" y="195" text-anchor="middle">Victoria Traces</text>
+        <rect class="box" x="760" y="22" width="140" height="56"/><text class="t-code" x="830" y="55" text-anchor="middle" style="fill:var(--ink)">LogQL API</text>
+        <rect class="box" x="760" y="92" width="140" height="56"/><text class="t-code" x="830" y="125" text-anchor="middle" style="fill:var(--ink)">PromQL API</text>
+        <rect class="box" x="760" y="162" width="140" height="56"/><text class="t-code" x="830" y="195" text-anchor="middle" style="fill:var(--ink)">TraceQL API</text>
+        <rect x="680" y="300" width="180" height="60" style="fill:var(--ink)"/><text x="770" y="336" text-anchor="middle" style="font-family:var(--display);font-weight:800;font-size:18px;fill:var(--paper)">CODEX</text>
+        <rect class="box" x="300" y="300" width="160" height="60"/><text class="t-title" x="380" y="336" text-anchor="middle">Код</text>
+      </svg>
+    </div>
+
+    <div class="prose">
+      <h3 class="h3">Скучные технологии выигрывают</h3>
+      <p>Предпочтение отдаётся зависимостям, которые можно целиком понять внутри репозитория. Технологии, которые называют скучными, агенту проще моделировать: они компонуются, у них стабильный API и их много в обучающих данных. Иногда дешевле попросить агента заново написать нужный кусок, чем обходить неочевидное поведение публичной библиотеки. Вместо пакета в духе <code>p-limit</code> команда сделала свой <code>map-with-concurrency</code>: он встроен в их OpenTelemetry, покрыт тестами на 100% и ведёт себя ровно так, как нужно их рантайму.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j11">
+  <aside class="tag"><div class="j"><span class="jbox">J11</span><span class="jlabel">OpenAI изнутри</span></div></aside>
+  <div class="body">
+    <p class="kicker">Репозиторий как система записи</p>
+    <h2 class="h2">Карта знаний, жёсткие слои и одна команда на всё</h2>
+    <div class="two">
+<pre class="tree">AGENTS.md          <span class="s">← ~100 строк, оглавление</span>
+ARCHITECTURE.md    <span class="s">← карта доменов и слоёв</span>
+docs/
+├── design-docs/
+│   ├── index.md
+│   ├── core-beliefs.md
+│   └── ...
+├── exec-plans/
+│   ├── active/
+│   ├── completed/
+│   └── tech-debt-tracker.md
+├── generated/
+│   └── db-schema.md
+├── product-specs/
+│   ├── index.md
+│   ├── new-user-onboarding.md
+│   └── ...
+├── references/
+│   ├── design-system-reference-llms.txt
+│   ├── nixpacks-llms.txt
+│   ├── uv-llms.txt
+│   └── ...
+├── DESIGN.md
+└── ...                <span class="s">← FRONTEND, PLANS, QUALITY_SCORE, SECURITY…</span></pre>
+      <div class="prose">
+        <p><b>Постепенное раскрытие.</b> Агент начинает с маленькой стабильной точки входа, и его учат, куда смотреть дальше. Перегружать его всем сразу не нужно.</p>
+        <p><b>Планы — полноценные артефакты.</b> Для мелких правок хватает короткого одноразового плана. Сложная работа идёт по плану выполнения с журналом прогресса и решений. Активные и завершённые планы и список техдолга версионируются вместе с кодом.</p>
+        <p><b>Документ о качестве</b> оценивает каждый домен продукта и каждый архитектурный слой и отслеживает пробелы во времени.</p>
+        <p><b>Свежесть проверяется механически.</b> Отдельные линтеры и задачи CI проверяют, что база знаний актуальна, перекрёстные ссылки целы, структура соблюдена. Периодический агент doc-gardening ищет документацию, которая расходится с реальным поведением кода, и открывает PR с исправлением.</p>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:14px">
+      <h3 class="h3">Слои внутри каждого домена</h3>
+      <div class="chain" role="img" aria-label="Слои: Types, Config, Repo, Service, Runtime, UI">
+        <span class="lyr">Types</span><span class="arr">→</span><span class="lyr">Config</span><span class="arr">→</span><span class="lyr">Repo</span><span class="arr">→</span><span class="lyr">Service</span><span class="arr">→</span><span class="lyr">Runtime</span><span class="arr">→</span><span class="lyr">UI</span>
+      </div>
+      <div class="chain-side">
+        <div><span class="lyr hv">Providers</span><p class="small">Единственный вход для сквозных аспектов: аутентификация, коннекторы, телеметрия, флаги функций.</p></div>
+        <div><span class="lyr dash">Utils</span><p class="small">Вне бизнес-домена. Всё остальное запрещено и проверяется механически.</p></div>
+      </div>
+      <p class="prose small">Такую архитектуру обычно откладывают, пока в компании не наберутся сотни инженеров. С агентами она нужна с самого начала: ограничения дают скорость без дрейфа. Правило звучит как «держи инварианты, а не реализацию»: например, данные обязательно разбираются на границе, но библиотека не предписана (модели сами тяготеют к Zod). Свои линтеры следят за структурированным логированием, именованием схем и типов, размером файлов и требованиями к надёжности. Человеческий стиль кода не обязателен: достаточно, чтобы код был корректным, поддерживаемым и читаемым для следующих запусков агента.</p>
+    </div>
+
+    <div class="two">
+      <div style="display:grid;gap:14px">
+        <h3 class="h3">Один промпт, полный цикл фичи</h3>
+        <ol class="ritual">
+          <li><span>Проверить текущее состояние кодовой базы.</span></li>
+          <li><span>Воспроизвести зафиксированную ошибку.</span></li>
+          <li><span>Записать видео, где ошибка видна.</span></li>
+          <li><span>Реализовать исправление.</span></li>
+          <li><span>Проверить исправление, запустив приложение.</span></li>
+          <li><span>Записать второе видео, где ошибки больше нет.</span></li>
+          <li><span>Открыть pull request.</span></li>
+          <li><span>Ответить на замечания агентов и людей.</span></li>
+          <li><span>Найти и починить падения сборки.</span></li>
+          <li><span>Позвать человека, только когда нужно суждение.</span></li>
+          <li><span>Влить изменения.</span></li>
+        </ol>
+        <p class="small muted">PR доводится до конца циклом Ральфа Виггума: агент просит ревью у других агентов локально и в облаке, отвечает на замечания и повторяет, пока все рецензенты не довольны. Люди могут смотреть PR, но не обязаны.</p>
+      </div>
+      <div style="display:grid;gap:18px;align-content:start">
+        <div style="display:grid;gap:10px">
+          <h3 class="h3">Что создают агенты</h3>
+          <div class="chips"><span>код продукта и тесты</span><span>CI и инструменты релиза</span><span>внутренние инструменты</span><span>история документации и дизайна</span><span>системы оценки</span><span>комментарии к ревью и ответы</span><span>скрипты, управляющие репозиторием</span><span>дашборды для продакшена</span></div>
+        </div>
+        <div class="prose">
+          <h3 class="h3">Два золотых принципа</h3>
+          <p>Общие пакеты утилит вместо самописных хелперов, чтобы инварианты жили в одном месте.</p>
+          <p>Никакого прощупывания данных наугад: проверять границы или работать через типизированные SDK, чтобы агент не строил логику на догадках о структуре.</p>
+          <p class="small muted">Вкус человека фиксируется один раз и дальше применяется к каждой строке. Плохие паттерны вылавливаются каждый день, а не расползаются неделями.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="three">
+      <div class="prose small"><p class="h3">Открытый вопрос</p><p>Как сохраняется архитектурная целостность за годы в системе, целиком написанной агентами.</p></div>
+      <div class="prose small"><p class="h3">Открытый вопрос</p><p>Где суждение человека даёт наибольший эффект и как записать его так, чтобы оно накапливалось.</p></div>
+      <div class="prose small"><p class="h3">Открытый вопрос</p><p>Как будет меняться такая система по мере роста возможностей моделей.</p></div>
+    </div>
+    <div>
+      <p class="slab slab-wide">Дисциплина в разработке осталась, но теперь она <em>в структуре, а не в коде.</em></p>
+      <p class="slab-cap">Вывод из раздела «Чему мы всё ещё учимся», OpenAI, февраль 2026</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j12">
+  <aside class="tag"><div class="j"><span class="jbox">J12</span><span class="jlabel">Практики</span></div></aside>
+  <div class="body">
+    <p class="kicker">Митчелл Хашимото · LangChain</p>
+    <h2 class="h2">Каждая ошибка агента должна стать последней такой</h2>
+    <div class="two">
+      <div class="prose">
+        <h3 class="h3">Хашимото: шаг 5 из 6</h3>
+        <p>Агенты гораздо эффективнее, когда попадают с первого раза. Надёжнее всего этого добиться, если дать им быстрые инструменты, которые автоматически говорят, что агент ошибся. Две формы:</p>
+        <p><b>Неявный промпт.</b> Агент запускает не те команды или ищет не те API — в AGENTS.md добавляется строка. В AGENTS.md терминала Ghostty каждая строка появилась из конкретного плохого поведения, и это почти полностью их устранило.</p>
+        <p><b>Настоящие инструменты.</b> Скрипты для скриншотов, отфильтрованных тестов и так далее, плюс строка в AGENTS.md, чтобы агент знал о них.</p>
+        <p class="muted small">Весь путь Хашимото: бросить чат-бота → повторить свою работу агентом → агенты в конце дня → отдать простые задачи → строить обвязку → всегда держать агента запущенным.</p>
+      </div>
+      <div style="display:grid;gap:16px">
+        <h3 class="h3">LangChain: та же модель, другая обвязка</h3>
+        <div class="bars" aria-label="Terminal Bench 2.0: 52,8 до, 66,5 после">
+          <p class="src">deepagents-cli на gpt-5.2-codex · Terminal Bench 2.0, % решённых задач</p>
+          <div class="bar-row"><span class="bl">До<small>топ-30</small></span><div class="track"><div class="fill" style="width:52.8%"></div></div><span class="bv">52,8</span></div>
+          <div class="bar-row"><span class="bl">После<small>топ-5</small></span><div class="track"><div class="fill hv" style="width:66.5%"></div></div><span class="bv">66,5</span></div>
+          <div class="axis"><span></span><div class="ticks"><span style="left:0">0</span><span style="left:25%">25</span><span style="left:50%">50</span><span style="left:75%">75</span><span style="left:100%">100</span></div><span></span></div>
+        </div>
+        <p class="small">89 задач из разных областей. Менялись три ручки: системный промпт с упором на самопроверку, инструменты и подача контекста о среде, middleware, которое замечает «петли обречённости», когда агент ходит по кругу, и распределение бюджета рассуждений по фазам (xhigh, high, xhigh). Каждый шаг агента писался в трейсы, ошибки разбирались по ним.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j13">
+  <aside class="tag"><div class="j"><span class="jbox">J13</span><span class="jlabel">Цифры 2026</span></div></aside>
+  <div class="body">
+    <p class="kicker">Marmelab, The State of AI Harness Engineering 2026 · сентябрь</p>
+    <h2 class="h2">Инструкции пишут все. Соблюдение проверяют единицы</h2>
+    <div class="stats">
+      <div class="stat"><strong>63%</strong><span>из 145 крупных open-source проектов (Rails, React, Kubernetes, Django) держат файл инструкций для агента</span></div>
+      <div class="stat"><strong class="hv">14</strong><span>хуков на все 145 проектов вместе. Субагента объявляют только 4 проекта</span></div>
+      <div class="stat"><strong>123</strong><span>строки — медиана корневого файла инструкций. 57% длиннее 100 строк, на которых остановилась OpenAI</span></div>
+      <div class="stat"><strong class="hv">12 из 391</strong><span>репозиториев содержат хоть одно deny-правило в настройках Claude Code. PreToolUse-хук — у 22</span></div>
+      <div class="stat"><strong class="hv">4–16%</strong><span>правил безопасности из 481 CLAUDE.md реально влияют на поведение. Правила прозой почти не исполняются</span></div>
+      <div class="stat"><strong>1 из 4</strong><span>субагентов в медианном репозитории имеет ограниченный список инструментов. Остальные видят всё</span></div>
+      <div class="stat"><strong>−8%</strong><span>успешности дал второй агент-ревьюер в одном исследовании абляцией (база 41%)</span></div>
+      <div class="stat"><strong>72,2 vs 71,8</strong><span>% на SWE-bench 500: команда из четырёх ролей против лучшего одиночного агента</span></div>
+    </div>
+    <p class="note">Вывод обзора: обвязку нужно тестировать и сводить к строгому минимуму, правила дублировать или заменять скриптами, давать агенту запускать приложение, измерять, какие части обвязки реально используются, и не давать ей гнить. Мультиагентность и ревьюеры не помогают автоматически.</p>
+  </div>
+</section>
+
+<section class="sec" id="j14">
+  <aside class="tag"><div class="j"><span class="jbox">J14</span><span class="jlabel">Принципы</span></div></aside>
+  <div class="body">
+    <p class="kicker">Что повторяется в источниках</p>
+    <h2 class="h2">Двенадцать правил хорошей обвязки</h2>
+    <div class="rules">
+      <div class="rule"><h4>Ошибка → постоянная правка среды</h4><p>Не исправляй один случай. Добавь строку, скрипт, тест или хук, после которого ошибка не повторится.</p><span class="src">Хашимото · OpenAI</span></div>
+      <div class="rule"><h4>Правило прозой → код</h4><p>Всё, что можно проверить детерминированно, превращай в линтер, тест или хук. Текстовые правила модель соблюдает выборочно.</p><span class="src">OpenAI · Marmelab</span></div>
+      <div class="rule"><h4>Короткая карта</h4><p>Корневой AGENTS.md — оглавление на ~100 строк. Детали в docs/ и скиллах, подгружаются по требованию.</p><span class="src">OpenAI</span></div>
+      <div class="rule"><h4>Одна фича за сессию</h4><p>Маленькие шаги, чистое состояние в конце, коммит с понятным сообщением.</p><span class="src">Anthropic</span></div>
+      <div class="rule"><h4>Передача через артефакты</h4><p>Файл прогресса, git, JSON-список фич, контракты. Следующая сессия должна понять состояние без догадок.</p><span class="src">Anthropic</span></div>
+      <div class="rule"><h4>Исполнитель ≠ проверяющий</h4><p>Самооценка завышена. Отдельный скептичный оценщик с критериями и порогами настраивается легче.</p><span class="src">Anthropic</span></div>
+      <div class="rule"><h4>Агент видит результат</h4><p>Браузер, скриншоты, логи, метрики. Проверка сквозь интерфейс, как у пользователя, а не только юнит-тесты.</p><span class="src">Anthropic · OpenAI</span></div>
+      <div class="rule"><h4>Сообщения для модели</h4><p>Ошибка линтера сразу говорит, как исправить. Это полезная инъекция промпта в нужный момент.</p><span class="src">Böckeler · OpenAI</span></div>
+      <div class="rule"><h4>Минимум и ревизия</h4><p>Каждый компонент — гипотеза о слабости модели. С новой моделью убирай компоненты по одному и измеряй.</p><span class="src">Anthropic · Marmelab</span></div>
+      <div class="rule"><h4>Измеряй по трейсам</h4><p>Смотри, где агент реально ошибается (трейсы, поведенческие evals), и правь обвязку под эти случаи. Без данных правки — гадание.</p><span class="src">LangChain · Google</span></div>
+      <div class="rule"><h4>Сборка мусора</h4><p>Агенты копируют существующие паттерны, включая плохие. Регулярные фоновые уборки по «золотым принципам».</p><span class="src">OpenAI</span></div>
+      <div class="rule"><h4>Ограниченный радиус</h4><p>Песочница, deny-правила, минимальные инструменты для субагентов, секреты вне досягаемости агента.</p><span class="src">Anthropic · Marmelab</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j15">
+  <aside class="tag"><div class="j"><span class="jbox">J15</span><span class="jlabel">Сбои</span></div></aside>
+  <div class="body">
+    <p class="kicker">Что ломается и чем лечится</p>
+    <h2 class="h2">Восемь типовых отказов</h2>
+    <div class="fails">
+      <div class="fail"><div><h4>Всё за один заход</h4><p>Агент пытается собрать приложение целиком, кончается контекст, фича брошена на середине. <span class="fix">Лечение:</span> список фич и одна фича за сессию.</p></div></div>
+      <div class="fail"><div><h4>Преждевременная победа</h4><p>Новый экземпляр видит прогресс и объявляет проект готовым. <span class="fix">Лечение:</span> JSON-список со статусом каждой фичи.</p></div></div>
+      <div class="fail"><div><h4>Тревога контекста</h4><p>Модель сворачивает работу, думая, что окно почти заполнено. <span class="fix">Лечение:</span> сброс контекста с передачей состояния. У Opus 4.5+ проявляется слабо.</p></div></div>
+      <div class="fail"><div><h4>Самовосхваление</h4><p>Агент хвалит свою посредственную работу, оценщик уговаривает себя, что баг несерьёзный. <span class="fix">Лечение:</span> отдельный оценщик, калибровка на примерах, жёсткие пороги.</p></div></div>
+      <div class="fail"><div><h4>Петля обречённости</h4><p>Агент ходит по кругу с мелкими вариациями одного неработающего подхода. <span class="fix">Лечение:</span> middleware, которое считает повторы и вмешивается.</p></div></div>
+      <div class="fail"><div><h4>Готово без проверки</h4><p>Юнит-тесты прошли, а в интерфейсе фича не работает. <span class="fix">Лечение:</span> браузерная автоматизация и сквозные проверки.</p></div></div>
+      <div class="fail"><div><h4>Дрейф и AI slop</h4><p>Код постепенно копирует худшие паттерны репозитория. <span class="fix">Лечение:</span> архитектурные линтеры и регулярная сборка мусора.</p></div></div>
+      <div class="fail"><div><h4>Гниение обвязки</h4><p>AGENTS.md разрастается, правила противоречат друг другу и устаревают. <span class="fix">Лечение:</span> короткая карта, проверка свежести, удаление ненесущих частей.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j16">
+  <aside class="tag"><div class="j"><span class="jbox">J16</span><span class="jlabel">Чек-лист</span></div></aside>
+  <div class="body">
+    <p class="kicker">Минимальная обвязка для своего проекта</p>
+    <h2 class="h2">С чего начать</h2>
+    <p class="prose muted">Порядок от дешёвого к дорогому. Отметки сохраняются только в этом браузере.</p>
+    <div class="check">
+      <label for="c1"><input type="checkbox" id="c1"><span><b>AGENTS.md на ~100 строк как оглавление.</b><small>Команды сборки и тестов, структура, ссылки на docs/.</small></span></label>
+      <label for="c2"><input type="checkbox" id="c2"><span><b>Одна команда запуска и smoke-тест.</b><small>init.sh или make dev, после которого агент сразу видит, жив ли проект.</small></span></label>
+      <label for="c3"><input type="checkbox" id="c3"><span><b>Быстрые вычислительные датчики.</b><small>Тесты, типы, линтер. Сообщения об ошибках с подсказкой, как исправить.</small></span></label>
+      <label for="c4"><input type="checkbox" id="c4"><span><b>Файл прогресса и коммит в конце каждой сессии.</b><small>Следующая сессия начинает с чтения прогресса и git log.</small></span></label>
+      <label for="c5"><input type="checkbox" id="c5"><span><b>Список задач в JSON со статусами.</b><small>Для долгих проектов: агент меняет только поле статуса.</small></span></label>
+      <label for="c6"><input type="checkbox" id="c6"><span><b>Хуки и deny-правила для опасного.</b><small>PreToolUse против удаления, пуша в main, чтения секретов. Права субагентам — по минимуму.</small></span></label>
+      <label for="c7"><input type="checkbox" id="c7"><span><b>Агент видит работающий результат.</b><small>Браузер через Playwright или Puppeteer MCP, скриншоты, логи.</small></span></label>
+      <label for="c8"><input type="checkbox" id="c8"><span><b>Отдельный оценщик там, где модель на пределе.</b><small>С критериями, порогами и калибровкой на примерах. Не для всего подряд.</small></span></label>
+      <label for="c9"><input type="checkbox" id="c9"><span><b>Журнал ошибок агента → правки обвязки.</b><small>Трейсы, разбор провалов, одна правка на каждую повторяющуюся ошибку.</small></span></label>
+      <label for="c10"><input type="checkbox" id="c10"><span><b>Ревизия при выходе новой модели.</b><small>Убирать компоненты по одному и проверять, что качество не упало.</small></span></label>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="j17">
+  <aside class="tag"><div class="j"><span class="jbox">J17</span><span class="jlabel">Словарь</span></div></aside>
+  <div class="body">
+    <p class="kicker">Термины</p>
+    <h2 class="h2">Словарь обвязки</h2>
+    <dl class="gloss">
+      <div><dt>Harness <span>· обвязка, упряжь</span></dt><dd>Всё в агенте, кроме модели: цикл, инструменты, контекст, права, проверки.</dd></div>
+      <div><dt>Scaffolding <span>· леса</span></dt><dd>Старое название того же самого. Встречается в докладе британского правительства к AI Safety Summit, октябрь 2023.</dd></div>
+      <div><dt>AGENTS.md</dt><dd>Открытый формат файла инструкций для агентов в корне репозитория. Подгружается в контекст при старте.</dd></div>
+      <div><dt>Skill <span>· навык</span></dt><dd>Папка с инструкциями и скриптами, которую агент подгружает только когда задача её касается.</dd></div>
+      <div><dt>Hook <span>· хук</span></dt><dd>Детерминированный код на событии агента. PreToolUse может запретить действие до выполнения.</dd></div>
+      <div><dt>MCP</dt><dd>Model Context Protocol, стандартный способ подключать к агенту инструменты и источники данных.</dd></div>
+      <div><dt>Compaction <span>· сжатие</span></dt><dd>Пересказ ранней части диалога на месте, чтобы тот же агент продолжал работу.</dd></div>
+      <div><dt>Context reset <span>· сброс</span></dt><dd>Новый агент с чистым окном плюс артефакт передачи состояния. Лечит тревогу контекста.</dd></div>
+      <div><dt>Context anxiety</dt><dd>Модель сворачивает работу раньше времени, считая, что лимит контекста близко.</dd></div>
+      <div><dt>Guides / Sensors</dt><dd>Направляющие задают курс до действия, датчики проверяют результат после.</dd></div>
+      <div><dt>Computational / Inferential</dt><dd>Проверка кодом (детерминированная) против проверки другой моделью.</dd></div>
+      <div><dt>Sprint contract</dt><dd>Договорённость генератора и оценщика о том, что значит «готово», до начала работы.</dd></div>
+      <div><dt>Initializer agent</dt><dd>Первая сессия, которая готовит среду: init.sh, список фич, файл прогресса, первый коммит.</dd></div>
+      <div><dt>Doom loop</dt><dd>Агент ходит по кругу, делая мелкие вариации одного неработающего подхода.</dd></div>
+      <div><dt>Ralph loop</dt><dd>Приём сообщества: хук или скрипт снова и снова перезапускает агента с той же задачей до завершения.</dd></div>
+      <div><dt>Garbage collection</dt><dd>Регулярные фоновые задачи агентов, которые ищут дрейф от принципов и открывают мелкие PR.</dd></div>
+      <div><dt>Harnessability</dt><dd>Насколько кодовую базу легко обвязать: строгие типы, границы модулей, фреймворки.</dd></div>
+      <div><dt>HaaS</dt><dd>Harness-as-a-Service: строить поверх готового рантайма агента (Claude Agent SDK, Codex SDK), а не поверх голого API.</dd></div>
+      <div><dt>Brain / Hands / Session</dt><dd>Разделение Managed Agents: цикл с моделью, среды исполнения, журнал событий.</dd></div>
+      <div><dt>Blast radius <span>· радиус поражения</span></dt><dd>Сколько вреда может причинить агент при ошибке. Уменьшается песочницей и правами.</dd></div>
+      <div><dt>Progressive disclosure <span>· постепенное раскрытие</span></dt><dd>Агент стартует с короткой карты и сам идёт за деталями туда, куда она указывает.</dd></div>
+      <div><dt>Exec plan <span>· план выполнения</span></dt><dd>Версионируемый план сложной работы с журналом прогресса и решений, лежит в exec-plans/.</dd></div>
+      <div><dt>Doc-gardening</dt><dd>Периодический агент, который находит устаревшие документы и открывает PR с исправлением.</dd></div>
+      <div><dt>llms.txt</dt><dd>Справочник по библиотеке или системе в формате, удобном для модели. У OpenAI лежат в docs/references/.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="sec" id="j18">
+  <aside class="tag"><div class="j"><span class="jbox">J18</span><span class="jlabel">Источники</span></div></aside>
+  <div class="body">
+    <p class="kicker">Первоисточники</p>
+    <h2 class="h2">Что читать в оригинале</h2>
+    <ul class="sources">
+      <li><span class="d">26.11.2025</span><span class="o">Anthropic</span><a href="https://www.anthropic.com/research/effective-harnesses-for-long-running-agents">Effective harnesses for long-running agents</a></li>
+      <li><span class="d">24.03.2026</span><span class="o">Anthropic</span><a href="https://www.anthropic.com/research/harness-design-long-running-apps">Harness design for long-running application development</a></li>
+      <li><span class="d">08.04.2026</span><span class="o">Anthropic</span><a href="https://www.anthropic.com/research/managed-agents">Scaling Managed Agents with stable interfaces</a></li>
+      <li><span class="d">05.02.2026</span><span class="o">M. Hashimoto</span><a href="https://mitchellh.com/writing/my-ai-adoption-journey">My AI Adoption Journey</a></li>
+      <li><span class="d">11.02.2026</span><span class="o">OpenAI</span><a href="https://openai.com/index/harness-engineering">Harness engineering: leveraging Codex in an agent-first world</a></li>
+      <li><span class="d">11.02.2026</span><span class="o">OpenAI · ru</span><a href="https://openai.com/ru-RU/index/harness-engineering/">Инженерия harness: Codex в мире, ориентированном на агентов</a></li>
+      <li><span class="d">17.02.2026</span><span class="o">LangChain</span><a href="https://www.langchain.com/blog/improving-deep-agents-with-harness-engineering">Improving Deep Agents with harness engineering</a></li>
+      <li><span class="d">10.03.2026</span><span class="o">LangChain</span><a href="https://www.langchain.com/blog/the-anatomy-of-an-agent-harness">The Anatomy of an Agent Harness</a></li>
+      <li><span class="d">02.04.2026</span><span class="o">Thoughtworks</span><a href="https://martinfowler.com/articles/harness-engineering.html">Harness engineering for coding agent users</a></li>
+      <li><span class="d">19.04.2026</span><span class="o">Addy Osmani</span><a href="https://addyosmani.com/blog/agent-harness-engineering">Agent Harness Engineering</a></li>
+      <li><span class="d">09.09.2026</span><span class="o">Google</span><a href="https://developers.googleblog.com/the-anatomy-of-harness-engineering-how-to-evaluate-iterate-and-guard-ai-coding-agents">The Anatomy of Harness Engineering</a></li>
+      <li><span class="d">24.09.2026</span><span class="o">Marmelab</span><a href="https://marmelab.com/blog/2026/09/24/the-state-of-ai-harness-engineering-2026.html">The State of AI Harness Engineering 2026</a></li>
+      <li><span class="d">2026</span><span class="o">Wikipedia</span><a href="https://en.wikipedia.org/wiki/Agent_harness">Agent harness</a></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <b>Harness Engineering</b>
+  <span>Составлено 13.11.2026 по открытым источникам</span>
+  <a href="#top">К началу ↑</a>
+</footer>
+</div>
+
+<script>
+(function(){
+  var KEY = "harness-checklist-v1";
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { saved = {}; }
+  var boxes = document.querySelectorAll('.check input[type="checkbox"]');
+  boxes.forEach(function(b){
+    if (saved[b.id]) b.checked = true;
+    b.addEventListener("change", function(){
+      saved[b.id] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+})();
+</script>
+</body>
+</html>
